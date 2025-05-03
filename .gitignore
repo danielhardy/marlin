@@ -1,0 +1,62 @@
+# ====================
+# Root-level ignores
+# ====================
+
+# Node modules (backend, frontend, and any nested functions)
+**/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# ====================
+# Environment files
+# ====================
+
+# Do NOT commit your .env into git :contentReference[oaicite:0]{index=0}
+.env
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# ====================
+# Backend (Express.js)
+# ====================
+
+# If you compile to a dist folder (e.g. with TypeScript)
+backend/dist/
+
+# ====================
+# Frontend (SvelteKit + Tailwind + DaisyUI)
+# ====================
+
+# SvelteKit build output
+frontend/.svelte-kit/
+frontend/build/
+
+# Vite cache (if applicable)
+frontend/node_modules/.vite/
+
+# ====================
+# Supabase local setup
+# ====================
+
+# Supabase CLI temporary files (unimportant, can be safely deleted) :contentReference[oaicite:1]{index=1}
+supabase/.temp/
+
+# Edge Function bundles or caches (if you compile/build functions)
+supabase/functions/**/node_modules/
+supabase/functions/**/dist/
+supabase/functions/**/.cache/
