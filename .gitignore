@@ -60,3 +60,9 @@ supabase/.temp/
 supabase/functions/**/node_modules/
 supabase/functions/**/dist/
 supabase/functions/**/.cache/
+
+# ====================
+# Notes files
+# ====================
+notes
+notes/* 

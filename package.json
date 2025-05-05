@@ -1,0 +1,20 @@
+{
+  "name": "marlin",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"DB,API,WEB\" --prefix \"[{name}]\" --prefix-colors \"cyan,green,magenta\" \"npm:dev:db\" \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:db": "npx --prefix supabase start",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend run dev"
+  },
+  "author": "Daniel Hardy <daniel@danielhardy.com>",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "supabase": "^2.22.6"
+  }
+}
