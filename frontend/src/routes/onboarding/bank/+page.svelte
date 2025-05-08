@@ -1,4 +1,3 @@
-<!-- src/routes/plaid/link/+page.svelte -->
 <script lang="ts">
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { onMount } from 'svelte';
@@ -46,4 +45,23 @@
 <svelte:head>
 	<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 </svelte:head>
-<button onclick={openLink} class="btn btn-primary"> Connect your bank </button>
+
+<main class="mx-auto flex max-w-4xl flex-col items-center justify-center">
+	<div class="steps mb-8 w-full">
+		<ul class="steps text-sm">
+			<li class="step step-primary" data-content="✓">Account</li>
+			<li class="step step-primary" data-content="✓">Business</li>
+			<li class="step step-primary">Bank</li>
+		</ul>
+	</div>
+	<div class="page-header w-full">
+		<h1 class="text-2xl">Connect your bank</h1>
+		<p class="my-8 text-sm">
+			Plaid makes connecting to your bank easy and secure. Clicking the link will take you to plaid
+			where you can select which accounts to grant access to.
+		</p>
+		<button onclick={openLink} class="btn btn-primary mt-4 w-full">
+			Connect your bank with Plaid
+		</button>
+	</div>
+</main>
