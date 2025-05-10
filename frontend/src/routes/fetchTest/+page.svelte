@@ -114,7 +114,7 @@
 			</thead>
 			<tbody>
 				{#each transactions as transaction}
-					<tr>
+					<tr class="hover:bg-base-200">
 						<td>
 							{#if transaction.logo_url}
 								<img src={transaction.logo_url} class="w-8" alt="icon" />
@@ -129,7 +129,14 @@
 							<!-- <img src={transaction.personal_finance_category_icon_url} class="w-8" alt="icon" /> -->
 							{transaction.personal_finance_category.primary}
 						</td>
-						<td class="text-right font-mono">${transaction.amount}</td>
+						<td class="text-right font-mono">
+							{#if transaction.amount < 0}
+								<span class="text-green-500">+${Math.abs(transaction.amount).toFixed(2)}</span>
+							{:else}
+								<span class="">${transaction.amount.toFixed(2)}</span>
+							{/if}
+							<!-- ${transaction.amount}	 -->
+						</td>
 						<!-- <td>{transaction.account_id}</td>
 					<td>{transaction.transaction_id}</td> -->
 					</tr>
