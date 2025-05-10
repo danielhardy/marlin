@@ -1,36 +1,51 @@
+// src/index.js
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors"; // <-- add this line
+import cors from "cors";
+import morgan from "morgan";
+import { authenticate } from "./middleware/auth.js";
 
-// Set default to 'development' if NODE_ENV is not defined
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: `.env.${env}` });
+// import your routes once they’re ready
+import plaidApiRoutes from "./routes/plaidRoutes.js";
+
+const NODE_ENV = process.env.NODE_ENV || "development";
+dotenv.config({ path: `.env.${NODE_ENV}` });
+// dotenv.config();
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
+// ─── Global Request Logging ───────────────────────────────────────────────────
+app.use(morgan("combined"));
+// other presets: 'dev' (concise/color), 'tiny', etc.
+
+// ─── Body Parsing & CORS ──────────────────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://127.0.0.1:3000"],
+    credentials: true,
   })
-); // <-- add this line to enable CORS for all routes
+);
 
-// Middleware to parse JSON requests
-app.use(express.json());
+// ─── Mount Your API Routes ────────────────────────────────────────────────────
+app.use("/plaid", authenticate, plaidApiRoutes);
 
-// Mount agent routes at /agent
-// app.use("/agent", agentRoutes);
-
-// Basic route
+// ─── Health Check / Basic Route ───────────────────────────────────────────────
 app.get("/", (req, res) => {
-  res.send("Hello, World!");
+  res.send("Marlin API");
 });
 
-// Start the server
+// ─── Error Handling ────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong!" });
+});
+
+// ─── Start Server ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(
-    "\x1b[36m%s\x1b[0m",
-    `Server is running in ${env} mode at http://localhost:${PORT}`
+    `\x1b[36mServer running in ${NODE_ENV} mode at http://localhost:${PORT}\x1b[0m`
   );
 });
