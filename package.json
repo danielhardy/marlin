@@ -12,9 +12,9 @@
   },
   "author": "Daniel Hardy <daniel@danielhardy.com>",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.1.2"
   },
   "dependencies": {
-    "supabase": "^2.22.6"
+    "supabase": "^2.22.12"
   }
 }
