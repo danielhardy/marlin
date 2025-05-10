@@ -30,7 +30,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
 		if (!session) {
-			return { session: null, user: null };
+			return { session: null, user: null, business_id: null };
 		}
 
 		const {
@@ -40,10 +40,25 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 		if (error) {
 			// JWT validation has failed
-			return { session: null, user: null };
+			return { session: null, user: null, business_id: null };
 		}
 
-		return { session, user };
+		let business_id: string | null = null;
+		if (user) {
+			const { data: membershipData, error: membershipError } = await event.locals.supabase
+				.from('memberships')
+				.select('business_id')
+				.eq('user_id', user.id)
+				.maybeSingle();
+
+			if (membershipError) {
+				console.error('Error fetching membership for user:', membershipError);
+			} else if (membershipData) {
+				business_id = membershipData.business_id;
+			}
+		}
+
+		return { session, user, business_id };
 	};
 
 	return resolve(event, {

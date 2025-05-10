@@ -27,7 +27,7 @@
 		} else if (data.session) {
 			console.log('Login successful!', data);
 			message = 'Login successful!';
-			goto('/');
+			goto('/home');
 		}
 	};
 

@@ -15,15 +15,32 @@
 		const input_data = Object.fromEntries(formData.entries());
 
 		// Save to supabase
-		const { error } = await supabase.from('businesses').insert([
+		const { data: business, error: businessError } = await supabase
+			.from('businesses')
+			.insert([
+				{
+					legal_name: input_data.legal_name,
+					country: input_data.country,
+					owner_id: user?.id
+				}
+			])
+			.select()
+			.single();
+		if (businessError) {
+			alert('Failed to create business: ' + businessError.message);
+			return;
+		}
+		// Insert membership
+		const { error: membershipError } = await supabase.from('memberships').insert([
 			{
-				legal_name: input_data.legal_name,
-				country: input_data.country,
-				owner_id: user?.id
+				user_id: user?.id,
+				business_id: business.id,
+				role: 'owner'
 			}
 		]);
-		if (error) {
-			alert('Failed to create business: ' + error.message);
+
+		if (membershipError) {
+			alert('Failed to create business: ' + membershipError.message);
 			return;
 		}
 		// Redirect on success

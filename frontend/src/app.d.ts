@@ -8,11 +8,14 @@ declare global {
 			safeGetSession: () => Promise<{
 				session: Session | null;
 				user: User | null;
+				business_id: string | null;
 			}>;
 		}
 		interface PageData {
+			cookies: { name: string; value: string }[];
 			session: Session | null;
 			user: User | null;
+			business_id: string | null;
 		}
 	}
 }

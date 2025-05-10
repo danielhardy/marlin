@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 // import { supabase } from '$lib/supabaseClient'; // Import supabase client
 
@@ -8,30 +9,29 @@ import type { LayoutServerLoad } from './$types';
 // 	// Add other profile fields if needed
 // }
 
-export const load: LayoutServerLoad = async ({ locals: { safeGetSession } }) => {
-	const { session, user } = await safeGetSession();
+export const load: LayoutServerLoad = async ({ locals: { safeGetSession }, url, cookies }) => {
+	const { session, user, business_id } = await safeGetSession();
 
-	// let profile: Profile | null = null;
-
-	// if (user) {
-	// 	// Fetch the user's profile if logged in
-	// 	const { data: profileData, error: profileError } = await supabase
-	// 		.from('profiles')
-	// 		.select('id, org_id') // Select necessary fields
-	// 		.eq('id', user.id)
-	// 		.single(); // Expecting only one profile per user
-
-	// 	if (profileError) {
-	// 		console.error('Error fetching user profile:', profileError);
-	// 		// Handle error appropriately, maybe return an error state
-	// 	} else {
-	// 		profile = profileData as Profile;
-	// 	}
-	// }
+	if (session && !business_id) {
+		const path = url.pathname;
+		const excludedPaths = [
+			'/onboarding/business',
+			'/auth/signin',
+			'/auth/signup',
+			'/auth/callback',
+			'/auth/forgot',
+			'/auth/reset'
+		];
+		const isExcluded = excludedPaths.some((p) => path === p || path.startsWith(p + '/'));
+		if (!isExcluded) {
+			throw redirect(303, '/onboarding/business');
+		}
+	}
 
 	return {
 		session,
-		user
-		// profile // Return the profile data
+		user,
+		business_id,
+		cookies: cookies.getAll()
 	};
 };

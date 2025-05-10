@@ -4,6 +4,7 @@
 
 	const { data } = $props();
 	let session = $derived(data.session);
+	let business_id = $derived(data.business_id);
 
 	let linkToken: string;
 	let handler: any;
@@ -23,6 +24,8 @@
 		handler = Plaid.create({
 			token: linkToken,
 			onSuccess: async (public_token: any) => {
+				console.log('Plaid public_token', public_token);
+				console.log('Sending...', JSON.stringify({ public_token, business_id }));
 				await fetch(`${PUBLIC_API_URL}plaid/exchange_public_token`, {
 					method: 'POST',
 					credentials: 'include',
@@ -30,7 +33,7 @@
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${session?.access_token}`
 					},
-					body: JSON.stringify({ public_token })
+					body: JSON.stringify({ public_token, business_id })
 				});
 			},
 			onExit: (err: any, meta: any) => console.warn('Plaid exited', err, meta)
@@ -65,3 +68,9 @@
 		</button>
 	</div>
 </main>
+<footer class="footer footer-center mt-16 p-4 text-xs text-neutral-500">
+	<div>
+		<p>Copyright © 2023 - All right reserved by Marlin</p>
+		<p>business_id: {business_id}</p>
+	</div>
+</footer>
