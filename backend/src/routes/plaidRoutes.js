@@ -1,18 +1,20 @@
 // src/routes/plaidRoutes.js
 import express from "express";
 import { CountryCode, Products } from "plaid";
-import plaidClient from "../services/plaidService.js";
-import { supabaseAdmin } from "../config/supabaseConfig.js";
 import { plaid_access } from "../middleware/plaid.js";
+import plaidClient from "../services/plaidService.js";
+import {
+  exchangePublicToken,
+  fetchPlaidItemDetails,
+  upsertPlaidItem,
+  fetchPlaidAccounts,
+  upsertBankAccounts,
+  syncAndUpsertTransactionsForItem,
+} from "../services/plaidServiceHelpers.js";
 
-// Set the router
 const router = express.Router();
-// username: 'user_good'
-// password: 'mfa_device'
 
-// # Code for all devices: 1234
-// code: 1234;
-// Route: Creates a Link token
+// Create a link token for the Plaid Link flow
 router.get("/create_link_token", async (req, res, next) => {
   console.log("Creating link token...");
   try {
@@ -36,35 +38,91 @@ router.get("/create_link_token", async (req, res, next) => {
   }
 });
 
-// Route: Exchanges the public token for an access token
 router.post("/exchange_public_token", async (req, res, next) => {
-  console.log("Exchanging public token...");
-  if (!req.user.id) {
-    console.error("User ID is not available.");
-    return res.status(400).json({ error: "Session not initialized." });
+  const { public_token, business_id } = req.body;
+
+  if (!public_token || !business_id) {
+    return res
+      .status(400)
+      .json({ error: "public_token and business_id are required." });
   }
+  if (!req.user || !req.user.id) {
+    // Assuming req.user.id is available for associating the item
+    console.error("User ID is not available in request.");
+    return res.status(400).json({ error: "User context not found." });
+  }
+
   try {
-    const { public_token, business_id } = req.body;
-    // console.log("public_token", public_token);
-    // console.log(
-    //   "business_id on express server at /echange_plugic_token",
-    //   business_id
-    // );
+    // 1) Exchange public token for access token and item_id
+    const { access_token, item_id } = await exchangePublicToken(public_token);
+    console.log(
+      `Public token exchanged. Access Token: [REDACTED], Item ID: ${item_id}`
+    );
 
-    const { data } = await plaidClient.itemPublicTokenExchange({
-      public_token,
+    // 2) Fetch Plaid item details (e.g., institution_id)
+    const plaidItemDetails = await fetchPlaidItemDetails(access_token);
+    const institution_id = plaidItemDetails?.item?.institution_id;
+    // const institution_name = plaidItemDetails?.institution?.name; // If available & needed
+
+    console.log(`Workspaceed Plaid item details for Item ID: ${item_id}`);
+
+    // 3) Upsert Plaid Item to your database
+    // The item_id from Plaid is the primary key for your plaid_items table.
+    // The cursor will be set to null initially and updated by syncAndUpsertTransactionsForItem.
+    const itemToUpsert = {
+      id: item_id, // This is the Plaid Item ID
+      user_id: req.user.id, // Associate with your internal user
+      business_id: business_id,
+      access_token: access_token,
+      institution_id: institution_id,
+      // institution_name: institution_name,
+      active: true,
+      cursor: null, // Initial cursor is null
+      // last_synced_at will be updated by the transaction sync
+    };
+    await upsertPlaidItem(itemToUpsert); // Ensure upsertPlaidItem can handle these fields
+    console.log(`Plaid item upserted/updated in DB for Item ID: ${item_id}`);
+
+    // 4) Fetch accounts associated with the item from Plaid
+    const accountsFromPlaid = await fetchPlaidAccounts(access_token);
+    console.log(
+      `Workspaceed ${accountsFromPlaid.length} accounts from Plaid for Item ID: ${item_id}`
+    );
+
+    // 5) Upsert bank accounts to your database, linking them to the item_id and business_id
+    // Ensure upsertBankAccounts populates item_id in your bank_accounts table.
+    await upsertBankAccounts(accountsFromPlaid, business_id, item_id);
+    console.log(`Bank accounts upserted in DB for Item ID: ${item_id}`);
+
+    // 6) Perform initial transaction sync for the new item
+    console.log(
+      `Starting initial transaction sync for new Item ID: ${item_id}`
+    );
+    const syncResult = await syncAndUpsertTransactionsForItem(
+      access_token,
+      item_id,
+      business_id
+    );
+    console.log(
+      `Initial transaction sync completed for Item ID: ${item_id}. Results:`,
+      syncResult
+    );
+
+    res.json({
+      success: true,
+      item_id: item_id,
+      message:
+        "Plaid item linked, accounts and initial transactions synced successfully.",
+      transaction_sync_details: syncResult,
     });
-
-    console.log("data", data);
-    const { access_token, item_id, request_id } = data;
-
-    // Persist for future calls
-    await savePlaidItemForUser(business_id, access_token, item_id);
-
-    // Optionally return the item_id so the front‑end can track it
-    res.json({ success: true, item_id });
   } catch (err) {
-    next(err);
+    console.error(
+      "Error in /exchange_public_token route:",
+      err.response ? err.response.data : err.message,
+      err.stack
+    );
+    // Consider if any cleanup is needed if partial steps succeeded
+    next(err); // Pass to global error handler
   }
 });
 
@@ -118,30 +176,5 @@ router.get("/getTransactions", plaid_access, async (req, res, next) => {
     next(error);
   }
 });
-
-// Route: Checks if the user's account is connected
-router.get("/is_account_connected", (req, res) => {
-  const isConnected = !!(req.session && req.session.access_token);
-  res.json({ status: isConnected });
-});
-
-async function savePlaidItemForUser(business_id, access_token, item_id) {
-  console.log(
-    "Saving Plaid item for user:",
-    business_id,
-    access_token,
-    item_id
-  );
-  // example using a Supabase table named `plaid_items`
-  const { error } = await supabaseAdmin.from("plaid_items").insert({
-    business_id: business_id,
-    access_token: access_token,
-    item_id: item_id,
-  });
-  if (error) {
-    console.error("Error saving Plaid item:", error);
-    throw error;
-  }
-}
 
 export default router;

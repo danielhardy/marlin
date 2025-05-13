@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
 	import type { PageData } from './$types';
+	import { OctagonAlert, Info } from '@lucide/svelte';
 
+	// Props and variables passed in
 	let { data }: { data: PageData } = $props();
-
 	let supabase = $derived(data.supabase);
 
+	// Declare variables and states
 	let email = $state('');
 	let password = $state('');
 	let message = $state('');
+	let messageType = $state('');
 
 	// Login with email and password
 	const loginUser = async (e: Event) => {
@@ -23,7 +25,9 @@
 
 		if (error) {
 			console.log('Error logging in:', error.message);
+
 			message = error.message;
+			messageType = 'error';
 		} else if (data.session) {
 			console.log('Login successful!', data);
 			message = 'Login successful!';
@@ -101,20 +105,13 @@ c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.
 
 <!-- Email/Password Login Form -->
 {#if message}
-	<div role="alert" class="alert">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 24 24"
-			class="h-6 w-6 shrink-0 stroke-inherit"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-			></path>
-		</svg>
+	<div role="alert" class="alert" class:alert-error={messageType === 'error'}>
+		{#if messageType === 'error'}
+			<OctagonAlert />
+		{:else}
+			<Info />
+		{/if}
+
 		<span class="">{message}</span>
 	</div>
 {/if}
