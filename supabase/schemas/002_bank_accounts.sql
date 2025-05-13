@@ -10,8 +10,12 @@ CREATE TABLE bank_accounts (
     -- subtype TEXT, -- Plaid provides subtype, might be useful e.g., 'cd', 'money market'
     current_balance NUMERIC(15, 2) NOT NULL DEFAULT 0.00, -- Use NUMERIC/DECIMAL for money
     -- currency_code TEXT DEFAULT 'USD' NOT NULL, -- Store currency explicitly
-    created_at TIMESTAMPTZ DEFAULT now() NOT NULL
-    -- last_synced_at TIMESTAMPTZ -- Track Plaid sync status
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL, -- last_synced_at TIMESTAMPTZ -- Track Plaid sync status
+    subtype TEXT, -- Plaid provides subtype, might be useful e.g., 'cd', 'money market'
+    official_name TEXT, -- Official name of the account
+    currency_code TEXT DEFAULT 'USD' NOT NULL, -- Store currency explicitly
+    available_balance NUMERIC(15, 2) DEFAULT 0.00 NOT NULL, -- Use NUMERIC/DECIMAL for money
+    credit_limit NUMERIC(15, 2) DEFAULT 0.00 NOT NULL -- Use NUMERIC/DECIMAL for money
 );
 
 -- Index for lookups by business

@@ -1,0 +1,143 @@
+erDiagram
+    users {
+        UUID id PK
+        TEXT email UK "Unique"
+        TEXT full_name "Nullable"
+        TIMESTAMPTZ created_at
+    }
+
+    businesses {
+        UUID id PK
+        TEXT legal_name
+        TEXT tax_id "Nullable"
+        TEXT country "Nullable"
+        TIMESTAMPTZ created_at
+    }
+
+    memberships {
+        UUID id PK
+        UUID user_id FK
+        UUID business_id FK
+        TEXT role "e.g., owner, admin, employee"
+        TIMESTAMPTZ created_at
+    }
+
+    bank_accounts {
+        UUID id PK
+        UUID business_id FK
+        TEXT plaid_account_id UK "Unique"
+        TEXT name
+        TEXT mask "Nullable"
+        TEXT type "Nullable"
+        NUMERIC current_balance
+        TIMESTAMPTZ created_at
+    }
+
+    categories {
+        UUID id PK
+        UUID business_id FK
+        UUID parent_id FK "Nullable, Self-ref"
+        TEXT name
+        TEXT schedule_c_code "Nullable"
+        BOOLEAN is_system
+        TIMESTAMPTZ created_at
+    }
+
+    transactions {
+        UUID id PK
+        UUID business_id FK
+        UUID bank_account_id FK
+        DATE date
+        NUMERIC amount
+        TEXT currency
+        TEXT raw_description "Nullable"
+        UUID category_id FK "Nullable"
+        REAL ai_confidence "Nullable"
+        TEXT status "Enum: pending, cleared"
+        TIMESTAMPTZ created_at
+    }
+
+    rules {
+        UUID id PK
+        UUID business_id FK
+        JSONB match
+        UUID category_id FK
+        BOOLEAN auto
+        INTEGER priority
+        TIMESTAMPTZ created_at
+    }
+
+    invoices {
+        UUID id PK
+        UUID business_id FK
+        TEXT stripe_invoice_id UK "Nullable, Unique"
+        TEXT invoice_number "Nullable"
+        TEXT customer_name "Nullable"
+        TEXT customer_email "Nullable"
+        TEXT status "Enum: draft, sent, paid, ..."
+        TEXT currency
+        NUMERIC total_amount
+        DATE issue_date
+        DATE due_date "Nullable"
+        TIMESTAMPTZ created_at
+    }
+
+    invoice_items {
+        UUID id PK
+        UUID invoice_id FK
+        TEXT description
+        NUMERIC quantity
+        NUMERIC unit_price
+        TIMESTAMPTZ created_at
+    }
+
+    receipts {
+        UUID id PK
+        UUID business_id FK
+        TEXT storage_path UK "Unique"
+        UUID transaction_id FK "Nullable"
+        UUID uploaded_by FK "Ref users(id)"
+        TIMESTAMPTZ uploaded_at
+        NUMERIC parsed_total "Nullable"
+        DATE parsed_date "Nullable"
+    }
+
+    tax_vaults {
+        UUID id PK
+        UUID business_id FK
+        UUID destination_bank_account_id FK "Nullable"
+        NUMERIC sales_tax_rate "Nullable"
+        NUMERIC income_tax_rate "Nullable"
+        TIMESTAMPTZ last_sweep_at "Nullable"
+        BOOLEAN is_enabled
+        TIMESTAMPTZ created_at
+    }
+
+    daily_digests {
+        UUID id PK
+        UUID business_id FK
+        DATE date
+        NUMERIC cash_in
+        NUMERIC cash_out
+        NUMERIC tax_reserved
+        INTEGER unreviewed_count
+    }
+
+    users ||--o{ memberships : "participates in"
+    businesses ||--o{ memberships : "has"
+    businesses ||--o{ bank_accounts : "owns"
+    businesses ||--o{ categories : "defines"
+    categories }o--o{ categories : "is parent/child of"
+    businesses ||--o{ transactions : "has"
+    bank_accounts ||--o{ transactions : "source for"
+    categories }o--o{ transactions : "classifies (optional)"
+    businesses ||--o{ rules : "defines"
+    categories ||--o{ rules : "applied by"
+    businesses ||--o{ invoices : "issues"
+    invoices ||--o{ invoice_items : "contains"
+    businesses ||--o{ receipts : "stores"
+    users ||--o{ receipts : "uploaded"
+    transactions }o--|| receipts : "linked to (optional)"
+    businesses ||--|| tax_vaults : "configures (1-to-1)"
+    bank_accounts }o--|| tax_vaults : "is destination for (optional)"
+    businesses ||--o{ daily_digests : "summarized in"

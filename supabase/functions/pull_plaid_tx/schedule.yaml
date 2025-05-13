@@ -1,0 +1,2 @@
+name: pull_plaid_tx
+cron: "0 * * * *"   # top of every hour; adjust to 6h or 24h if you prefer
