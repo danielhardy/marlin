@@ -11,6 +11,7 @@ import {
   RemovedTransaction,
 } from "npm:plaid@^33.0.0";
 
+import { Transaction as TransactionType } from "./types.ts";
 console.log("Initializing Plaid transaction sync...");
 
 // ── Configuration ──────────────────────────────────────────────────────────────
@@ -173,7 +174,7 @@ async function processSingleItem(item: PlaidItem): Promise<void> {
           synced_at: new Date().toISOString(),
         };
       })
-      .filter((r): r is Record<string, any> => r !== null);
+      .filter((r) => r !== null) as TransactionType[];
 
     if (toUpsert.length) {
       const { error: upsertErr } = await supabaseAdmin
