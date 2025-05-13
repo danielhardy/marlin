@@ -72,5 +72,6 @@
 	<div>
 		<p>Copyright © 2023 - All right reserved by Marlin</p>
 		<p>business_id: {business_id}</p>
+		<p>user_id: {session.user.id}</p>
 	</div>
 </footer>

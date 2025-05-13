@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+
+	// ENV variables
 	import { PUBLIC_API_URL } from '$env/static/public';
+
+	//UI
+	import Navbar from '$lib/ui/Navbar.svelte';
 
 	const { data } = $props();
 	let session = $derived(data.session);
@@ -73,6 +78,8 @@
 		// fetchData();
 	});
 </script>
+
+<Navbar {session} supabase={data.supabase} />
 
 <main class="p-16">
 	<h1 class="mb-8 mt-4 text-4xl">Fetch Test</h1>

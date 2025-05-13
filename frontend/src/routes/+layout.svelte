@@ -31,4 +31,6 @@
 	const { data, children } = $props();
 </script>
 
-{@render children()}
+<div class="h-screen w-screen">
+	{@render children()}
+</div>
