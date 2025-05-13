@@ -146,4 +146,6 @@ c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.
 </form>
 
 <p class="mb-2 text-sm"><a class="link" href="/auth/forgot">Forgot Password?</a></p>
-<p class="text-sm">Don't have an account? <a class="link" href="/auth/signup">Register!</a></p>
+<p class="text-sm">
+	Don't have an account? <a class="link" href="/onboarding/account">Register!</a>
+</p>
