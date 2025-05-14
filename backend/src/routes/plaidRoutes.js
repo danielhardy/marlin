@@ -95,9 +95,9 @@ router.post("/exchange_public_token", async (req, res, next) => {
     console.log(`Bank accounts upserted in DB for Item ID: ${item_id}`);
 
     // 6) Perform initial transaction sync for the new item
-    console.log(
-      `Starting initial transaction sync for new Item ID: ${item_id}`
-    );
+    // console.log(
+    //   `Starting initial transaction sync for new Item ID: ${item_id}`
+    // );
     const syncResult = await syncAndUpsertTransactionsForItem(
       access_token,
       item_id,
