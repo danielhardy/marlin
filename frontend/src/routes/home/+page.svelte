@@ -13,6 +13,7 @@
 	let session = $derived(data.session);
 	let supabase = $derived(data.supabase);
 	let access_tokens = data.access_tokens;
+	let business_id = data.business_id;
 
 	// Create initial types only used in this scope
 	// TODO move to types folder
@@ -48,7 +49,11 @@
 	};
 
 	const fetchTransactions = async () => {
-		const { data, error } = await supabase.from('transactions').select('*');
+		const { data, error } = await supabase
+			.from('transactions')
+			.select('*')
+			.eq('business_id', business_id)
+			.order('date_posted', { ascending: false });
 		if (error) {
 			console.error(error);
 			return [];

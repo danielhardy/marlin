@@ -11,6 +11,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		redirect(303, '/auth/signin?r=home');
 	}
 
+	console.log('business_id in /home/+page.server.ts', business_id);
+
 	// Fetch the access_token from plaid_items for the user's business
 	let access_tokens = null;
 	if (business_id) {

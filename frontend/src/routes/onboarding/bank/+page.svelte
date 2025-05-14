@@ -21,6 +21,7 @@
 		const body = await res.json();
 		linkToken = body.link_token;
 
+		// @ts-ignore
 		handler = Plaid.create({
 			token: linkToken,
 			onSuccess: async (public_token: any) => {
@@ -35,6 +36,8 @@
 					},
 					body: JSON.stringify({ public_token, business_id })
 				});
+				// Redirect to /home on success
+				window.location.href = '/home';
 			},
 			onExit: (err: any, meta: any) => console.warn('Plaid exited', err, meta)
 		});
@@ -49,25 +52,24 @@
 	<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 </svelte:head>
 
-<main class="mx-auto flex max-w-4xl flex-col items-center justify-center">
-	<div class="steps mb-8 w-full">
-		<ul class="steps text-sm">
-			<li class="step step-primary" data-content="✓">Account</li>
-			<li class="step step-primary" data-content="✓">Business</li>
-			<li class="step step-primary">Bank</li>
-		</ul>
-	</div>
-	<div class="page-header w-full">
-		<h1 class="text-2xl">Connect your bank</h1>
-		<p class="my-8 text-sm">
-			Plaid makes connecting to your bank easy and secure. Clicking the link will take you to plaid
-			where you can select which accounts to grant access to.
-		</p>
-		<button onclick={openLink} class="btn btn-primary mt-4 w-full">
-			Connect your bank with Plaid
-		</button>
-	</div>
-</main>
+<div class="steps mb-8 w-full">
+	<ul class="steps text-sm">
+		<li class="step step-primary" data-content="✓">Account</li>
+		<li class="step step-primary" data-content="✓">Business</li>
+		<li class="step step-primary">Bank</li>
+	</ul>
+</div>
+<div class="page-header w-full">
+	<h1 class="text-2xl">Connect your bank</h1>
+	<p class="my-8 text-sm">
+		Plaid makes connecting to your bank easy and secure. Clicking the link will take you to plaid
+		where you can select which accounts to grant access to.
+	</p>
+	<button onclick={openLink} class="btn btn-neutral mt-4 w-full">
+		Connect your bank with Plaid
+	</button>
+</div>
+
 <footer class="footer footer-center mt-16 p-4 text-xs text-neutral-500">
 	<div>
 		<p>Copyright © 2023 - All right reserved by Marlin</p>
