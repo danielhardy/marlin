@@ -1,65 +1,170 @@
 erDiagram
-    USERS ||--o{ MEMBERSHIPS : participates_in
-    BUSINESSES ||--o{ MEMBERSHIPS : has
-    BUSINESSES ||--o{ PLAID_ITEMS : owns
-    PLAID_ITEMS ||--o{ BANK_ACCOUNTS : exposes
-    BANK_ACCOUNTS ||--o{ TRANSACTIONS : contains
-    BUSINESSES ||--o{ CATEGORIES : defines
-    CATEGORIES }o--o{ CATEGORIES : parent_child
-    CATEGORIES ||--o{ TRANSACTIONS : classifies
-
-    %%—— Tables ——%%
     USERS {
-      UUID    id PK
-      TEXT    email UNIQUE
-      TEXT    full_name
-      TIMESTAMPTZ created_at
+        uuid id PK
+        text email UK
+        text full_name
+        timestamptz created_at
     }
     BUSINESSES {
-      UUID    id PK
-      TEXT    legal_name
-      TEXT    country
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid owner_id FK
+        text legal_name
+        text tax_id
+        text country
+        timestamptz created_at
     }
     MEMBERSHIPS {
-      UUID    id PK
-      UUID    user_id FK
-      UUID    business_id FK
-      TEXT    role
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid user_id FK
+        uuid business_id FK
+        text role
+        timestamptz created_at
     }
     PLAID_ITEMS {
-      UUID    id PK
-      UUID    business_id FK
-      TEXT    item_id UNIQUE     “Plaid’s item_id”
-      TEXT    access_token       “Plaid access token”
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid business_id FK
+        text item_id UK
+        text access_token
+        text cursor
+        timestamptz last_synced_at
+        boolean active
+        timestamptz created_at
+        timestamptz last_failed_at
+        text institution_id
+        text institution_name
+        text[] products
     }
     BANK_ACCOUNTS {
-      UUID    id PK
-      UUID    plaid_item_id FK
-      TEXT    account_id UNIQUE  “Plaid account_id”
-      TEXT    name
-      TEXT    mask
-      TEXT    type
-      NUMERIC current_balance
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid business_id FK
+        uuid plaid_item_id FK
+        text plaid_account_id UK
+        text name
+        text mask
+        text type
+        text subtype
+        text official_name
+        text currency_code
+        numeric current_balance
+        numeric available_balance
+        numeric credit_limit
+        timestamptz created_at
     }
     TRANSACTIONS {
-      UUID    id PK
-      UUID    bank_account_id FK
-      DATE    date
-      NUMERIC amount
-      TEXT    currency
-      TEXT    description
-      UUID    category_id FK
-      TEXT    status            “Enum: pending, cleared”
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid business_id FK
+        uuid item_id FK
+        uuid bank_account_id FK
+        text plaid_transaction_id UK
+        date date_posted
+        numeric amount
+        text iso_currency_code
+        text name
+        text merchant_name
+        jsonb raw_details
+        boolean pending
+        uuid category_id FK
+        real ai_confidence
+        text status
+        timestamptz synced_at
+        timestamptz created_at
+        timestamptz reviewed_at
     }
     CATEGORIES {
-      UUID    id PK
-      UUID    business_id FK
-      UUID    parent_id FK
-      TEXT    name
-      TIMESTAMPTZ created_at
+        uuid id PK
+        uuid business_id FK
+        uuid parent_id FK
+        text name
+        text schedule_c_code
+        boolean is_system
+        timestamptz created_at
     }
+    RULES {
+        uuid id PK
+        uuid business_id FK
+        jsonb match
+        uuid category_id FK
+        boolean auto
+        integer priority
+        timestamptz created_at
+    }
+    INVOICES {
+        uuid id PK
+        uuid business_id FK
+        text stripe_invoice_id UK
+        text invoice_number
+        text customer_name
+        text customer_email
+        text status
+        text currency
+        numeric total_amount
+        numeric amount_due
+        numeric amount_paid
+        date issue_date
+        date due_date
+        timestamptz sent_at
+        timestamptz paid_at
+        timestamptz created_at
+    }
+    INVOICE_ITEMS {
+        uuid id PK
+        uuid invoice_id FK
+        text description
+        numeric quantity
+        numeric unit_price
+        timestamptz created_at
+    }
+    RECEIPTS {
+        uuid id PK
+        uuid business_id FK
+        text storage_path UK
+        uuid transaction_id FK
+        uuid uploaded_by FK
+        timestamptz uploaded_at
+        numeric parsed_total
+        date parsed_date
+        text parsed_vendor
+        text file_name
+        text content_type
+    }
+    TAX_VAULTS {
+        uuid id PK
+        uuid business_id UK FK
+        uuid destination_bank_account_id FK
+        numeric sales_tax_rate
+        numeric income_tax_rate
+        timestamptz last_sweep_at
+        boolean is_enabled
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    DAILY_DIGESTS {
+        uuid id PK
+        uuid business_id FK
+        date date
+        numeric cash_in
+        numeric cash_out
+        numeric tax_reserved
+        integer unreviewed_count
+    }
+
+    USERS ||--o{ MEMBERSHIPS : "has"
+    BUSINESSES ||--o{ MEMBERSHIPS : "has"
+    BUSINESSES ||--o{ PLAID_ITEMS : "has"
+    PLAID_ITEMS ||--o{ BANK_ACCOUNTS : "exposes"
+    BUSINESSES ||--o{ BANK_ACCOUNTS : "owns"
+    BANK_ACCOUNTS ||--o{ TRANSACTIONS : "contains"
+    BUSINESSES ||--o{ TRANSACTIONS : "has"
+    BUSINESSES ||--o{ CATEGORIES : "defines"
+    CATEGORIES }o--o{ CATEGORIES : "parent_child"
+    CATEGORIES ||--o{ TRANSACTIONS : "classifies"
+    BUSINESSES ||--o{ RULES : "defines"
+    CATEGORIES ||--o{ RULES : "applied_by"
+    BUSINESSES ||--o{ INVOICES : "issues"
+    INVOICES ||--o{ INVOICE_ITEMS : "contains"
+    BUSINESSES ||--o{ RECEIPTS : "stores"
+    USERS ||--o{ RECEIPTS : "uploaded"
+    TRANSACTIONS }o--|| RECEIPTS : "linked_to"
+    BUSINESSES ||--|| TAX_VAULTS : "configures"
+    BANK_ACCOUNTS }o--|| TAX_VAULTS : "is_destination_for"
+    BUSINESSES ||--o{ DAILY_DIGESTS : "summarized_in"
