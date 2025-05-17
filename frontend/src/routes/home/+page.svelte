@@ -12,7 +12,7 @@
 	const { data } = $props();
 	let session = $derived(data.session);
 	let supabase = $derived(data.supabase);
-	let access_tokens = data.access_tokens;
+	let plaid_item_ids = data.plaid_item_ids;
 	let business_id = data.business_id;
 
 	// Create initial types only used in this scope
@@ -32,14 +32,14 @@
 	let accounts: Account[] = $state([]);
 
 	const fetchBankBalances = async () => {
-		console.log('fetching data...');
+		console.log('fetching data with access token:', plaid_item_ids);
 		const response = await fetch(`${PUBLIC_API_URL}plaid/getAccountBalance`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${session?.access_token}`,
-				plaid_token_id: `${access_tokens && access_tokens[0] ? access_tokens[0].id : ''}`
+				plaid_token_id: `${plaid_item_ids && plaid_item_ids[0] ? plaid_item_ids[0].id : ''}`
 			}
 		});
 		const parsedResponse = await response.json();
@@ -64,7 +64,7 @@
 
 	onMount(() => {
 		console.log('data:', data);
-		console.log('access_tokens:', access_tokens);
+		console.log('plaid_item_ids:', plaid_item_ids?.toLocaleString());
 
 		// fetchData();
 	});

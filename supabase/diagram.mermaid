@@ -1,14 +1,23 @@
 erDiagram
     USERS ||--o{ MEMBERSHIPS : participates_in
     BUSINESSES ||--o{ MEMBERSHIPS : has
-    BUSINESSES ||--o{ PLAID_ITEMS : owns
-    PLAID_ITEMS ||--o{ BANK_ACCOUNTS : exposes
+    BUSINESSES ||--o{ PLAID_ITEMS_RAW : owns
+    PLAID_ITEMS_RAW ||--o{ BANK_ACCOUNTS : exposes
     BANK_ACCOUNTS ||--o{ TRANSACTIONS : contains
     BUSINESSES ||--o{ CATEGORIES : defines
     CATEGORIES }o--o{ CATEGORIES : parent_child
     CATEGORIES ||--o{ TRANSACTIONS : classifies
+    BUSINESSES ||--o{ RULES : defines
+    CATEGORIES ||--o{ RULES : applied_by
+    BUSINESSES ||--o{ INVOICES : issues
+    INVOICES ||--o{ INVOICE_ITEMS : contains
+    BUSINESSES ||--o{ RECEIPTS : stores
+    USERS ||--o{ RECEIPTS : uploaded
+    TRANSACTIONS }o--|| RECEIPTS : linked_to
+    BUSINESSES ||--|| TAX_VAULTS : configures
+    BANK_ACCOUNTS }o--|| TAX_VAULTS : is_destination_for
+    BUSINESSES ||--o{ DAILY_DIGESTS : summarized_in
 
-    %%—— Tables ——%%
     USERS {
       UUID    id PK
       TEXT    email UNIQUE
@@ -17,7 +26,9 @@ erDiagram
     }
     BUSINESSES {
       UUID    id PK
+      UUID    owner_id FK
       TEXT    legal_name
+      TEXT    tax_id
       TEXT    country
       TIMESTAMPTZ created_at
     }
@@ -28,38 +39,129 @@ erDiagram
       TEXT    role
       TIMESTAMPTZ created_at
     }
-    PLAID_ITEMS {
+    PLAID_ITEMS_RAW {
       UUID    id PK
       UUID    business_id FK
-      TEXT    item_id UNIQUE     “Plaid’s item_id”
-      TEXT    access_token       “Plaid access token”
+      TEXT    item_id UNIQUE
+      BYTEA   access_token
+      TEXT    cursor
+      TIMESTAMPTZ last_synced_at
+      BOOLEAN active
       TIMESTAMPTZ created_at
+      TIMESTAMPTZ last_failed_at
+      TEXT    institution_id
+      TEXT    institution_name
+      TEXT[]  products
     }
     BANK_ACCOUNTS {
       UUID    id PK
-      UUID    plaid_item_id FK
-      TEXT    account_id UNIQUE  “Plaid account_id”
+      UUID    business_id FK
+      TEXT    plaid_account_id UNIQUE
       TEXT    name
       TEXT    mask
       TEXT    type
+      TEXT    subtype
+      TEXT    official_name
+      TEXT    currency_code
       NUMERIC current_balance
+      NUMERIC available_balance
+      NUMERIC credit_limit
       TIMESTAMPTZ created_at
     }
     TRANSACTIONS {
       UUID    id PK
+      UUID    business_id FK
+      UUID    item_id FK
       UUID    bank_account_id FK
-      DATE    date
+      TEXT    plaid_transaction_id UNIQUE
+      DATE    date_posted
       NUMERIC amount
-      TEXT    currency
-      TEXT    description
+      TEXT    iso_currency_code
+      TEXT    name
+      TEXT    merchant_name
+      JSONB   raw_details
+      BOOLEAN pending
       UUID    category_id FK
-      TEXT    status            “Enum: pending, cleared”
+      REAL    ai_confidence
+      TEXT    status
+      TIMESTAMPTZ synced_at
       TIMESTAMPTZ created_at
+      TIMESTAMPTZ reviewed_at
     }
     CATEGORIES {
       UUID    id PK
       UUID    business_id FK
       UUID    parent_id FK
       TEXT    name
+      TEXT    schedule_c_code
+      BOOLEAN is_system
       TIMESTAMPTZ created_at
+    }
+    RULES {
+      UUID    id PK
+      UUID    business_id FK
+      JSONB   match
+      UUID    category_id FK
+      BOOLEAN auto
+      INTEGER priority
+      TIMESTAMPTZ created_at
+    }
+    INVOICES {
+      UUID    id PK
+      UUID    business_id FK
+      TEXT    stripe_invoice_id UNIQUE
+      TEXT    invoice_number
+      TEXT    customer_name
+      TEXT    customer_email
+      TEXT    status
+      TEXT    currency
+      NUMERIC total_amount
+      NUMERIC amount_due
+      NUMERIC amount_paid
+      DATE    issue_date
+      DATE    due_date
+      TIMESTAMPTZ sent_at
+      TIMESTAMPTZ paid_at
+      TIMESTAMPTZ created_at
+    }
+    INVOICE_ITEMS {
+      UUID    id PK
+      UUID    invoice_id FK
+      TEXT    description
+      NUMERIC quantity
+      NUMERIC unit_price
+      TIMESTAMPTZ created_at
+    }
+    RECEIPTS {
+      UUID    id PK
+      UUID    business_id FK
+      TEXT    storage_path UNIQUE
+      UUID    transaction_id FK
+      UUID    uploaded_by FK
+      TIMESTAMPTZ uploaded_at
+      NUMERIC parsed_total
+      DATE    parsed_date
+      TEXT    parsed_vendor
+      TEXT    file_name
+      TEXT    content_type
+    }
+    TAX_VAULTS {
+      UUID    id PK
+      UUID    business_id UNIQUE FK
+      UUID    destination_bank_account_id FK
+      NUMERIC sales_tax_rate
+      NUMERIC income_tax_rate
+      TIMESTAMPTZ last_sweep_at
+      BOOLEAN is_enabled
+      TIMESTAMPTZ created_at
+      TIMESTAMPTZ updated_at
+    }
+    DAILY_DIGESTS {
+      UUID    id PK
+      UUID    business_id FK
+      DATE    date
+      NUMERIC cash_in
+      NUMERIC cash_out
+      NUMERIC tax_reserved
+      INTEGER unreviewed_count
     }
