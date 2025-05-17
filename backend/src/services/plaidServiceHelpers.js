@@ -1,6 +1,7 @@
 // src/services/plaidServiceHelpers.js
 import { supabaseAdmin } from "../config/supabaseConfig.js"; // Use the existing admin client
 import plaidClient from "./plaidService.js"; // Use the existing Plaid client
+import { encrypt, decrypt } from "../utils/crypto.js"; // Import encrypt and decrypt
 
 /**
  * Exchanges a Plaid public_token for an access_token and item_id.
@@ -14,7 +15,13 @@ export async function exchangePublicToken(public_token) {
       public_token,
     });
     console.log("Public token exchange successful.");
-    return data; // { access_token, item_id, request_id }
+    const encrypted_access_token = await encrypt(data.access_token); // Encrypt the access_token before returning
+    return {
+      access_token: encrypted_access_token,
+      // access_token: data.access_token, // For testing, return the raw access token
+      item_id: data.item_id,
+      request_id: data.request_id,
+    };
   } catch (error) {
     console.error(
       "Error exchanging public token:",
@@ -26,12 +33,17 @@ export async function exchangePublicToken(public_token) {
 
 /**
  * Fetches core details about a Plaid Item.
- * @param {string} access_token - The access token for the Plaid Item.
+ * @param {string} encrypted_access_token - The encrypted access token for the Plaid Item.
  * @returns {Promise<object>} The Plaid Item object.
  */
-export async function fetchPlaidItemDetails(access_token) {
+export async function fetchPlaidItemDetails(encrypted_access_token) {
   console.log("Fetching Plaid item details...");
   try {
+    const access_token = await decrypt(encrypted_access_token); // Decrypt the access_token before using
+
+    console.log(`Access token encrypted: ${encrypted_access_token}`);
+    console.log(`Access token decrypted: ${access_token}`);
+
     const { data } = await plaidClient.itemGet({ access_token });
     console.log("Plaid item details fetched successfully.");
     // data contains { item: {..., institution_id: ...}, status: ..., request_id: ... }
@@ -101,12 +113,13 @@ export async function upsertPlaidItem(itemData) {
 
 /**
  * Fetches accounts associated with a Plaid Item using its access_token.
- * @param {string} access_token - The access token for the Plaid Item.
+ * @param {string} encrypted_access_token - The encrypted access token for the Plaid Item.
  * @returns {Promise<Array<object>>} An array of Plaid account objects.
  */
-export async function fetchPlaidAccounts(access_token) {
+export async function fetchPlaidAccounts(encrypted_access_token) {
   console.log("Fetching Plaid accounts from Plaid API...");
   try {
+    const access_token = await decrypt(encrypted_access_token); // Decrypt the access_token before using
     const { data } = await plaidClient.accountsGet({ access_token });
     console.log(
       `Fetched ${data.accounts.length} Plaid accounts from Plaid API.`
@@ -174,19 +187,21 @@ export async function upsertBankAccounts(accountsFromPlaid, business_id) {
  * Fetches transactions for a given Plaid Item using transactions/sync,
  * upserts them into the database, and updates the item's sync cursor.
  *
- * @param {string} accessToken - The Plaid access token for the item.
+ * @param {string} encrypted_access_token - The encrypted Plaid access token for the item.
  * @param {string} plaidItemStringId - The Plaid Item ID (TEXT, e.g., "item-xxx..."). This is Plaid's `item_id`.
  * @param {string} businessId - Your internal business ID (UUID).
  * @returns {Promise<object>} Result of the sync operation.
  */
 export async function syncAndUpsertTransactionsForItem(
-  accessToken,
+  encrypted_access_token,
   plaidItemStringId,
   businessId
 ) {
   console.log(
     `Starting transaction sync for Plaid Item (Plaid's textual ID: ${plaidItemStringId}), Business ID: ${businessId}`
   );
+
+  const accessToken = await decrypt(encrypted_access_token); // Decrypt the access_token before using
 
   // 0. Fetch the internal plaid_items record to get its UUID PK and current cursor
   let internalPlaidItemRecord;

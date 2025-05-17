@@ -56,7 +56,7 @@ router.post("/exchange_public_token", async (req, res, next) => {
     // 1) Exchange public token for access token and item_id
     const { access_token, item_id } = await exchangePublicToken(public_token);
     console.log(
-      `Public token exchanged. Access Token: [REDACTED], Item ID: ${item_id}`
+      `Public token exchanged. Access Token: [encrypted] ${access_token}, Item ID: ${item_id}`
     );
 
     // 2) Fetch Plaid item details (e.g., institution_id)
