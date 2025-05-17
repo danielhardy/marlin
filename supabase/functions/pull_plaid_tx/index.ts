@@ -2,6 +2,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2.49.3";
+import { decryptToken } from "./utils/crypto.ts";
 
 import {
   Configuration,
@@ -73,18 +74,18 @@ interface PlaidItem {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-async function fetchAllActiveItems(): Promise<PlaidItem[]> {
-  console.log("Fetching all active Plaid items...");
+async function fetchAllActiveItems() {
   const { data, error } = await supabaseAdmin
     .from("plaid_items")
     .select("id, access_token, cursor, business_id")
     .eq("active", true);
 
-  if (error) {
-    console.error("Error fetching Plaid items:", error);
-    throw error;
-  }
-  return data || [];
+  if (error) throw error;
+
+  return (data || []).map((item) => ({
+    ...item,
+    access_token: await decryptToken(item.access_token),
+  }));
 }
 
 async function loadBankAccountMap(
