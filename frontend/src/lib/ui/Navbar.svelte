@@ -17,11 +17,11 @@
 
 <nav class="mt-8 flex flex-row items-center px-16">
 	<div class="hover:bg-base-200 rounded">
-		<a href="/" class="flex flex-row items-center">
-			<div class="mr-4 mt-1 h-10 w-10">
+		<a href="/" class="btn btn-ghost -ml-2 flex flex-row items-center">
+			<div class="-ml-1 h-10 w-10">
 				<Logo />
 			</div>
-			<span class="text-xl font-medium">marlin</span>
+			<span class="-ml-1 text-xl font-medium">marlin</span>
 		</a>
 	</div>
 	<div class="flex-1"></div>
