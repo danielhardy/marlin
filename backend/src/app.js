@@ -1,5 +1,6 @@
 // src/index.js
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
@@ -8,9 +9,10 @@ import { authenticate } from "./middleware/auth.js";
 // import your routes once they’re ready
 import plaidApiRoutes from "./routes/plaidRoutes.js";
 
-const NODE_ENV = process.env.NODE_ENV || "development";
-dotenv.config({ path: `.env.${NODE_ENV}` });
-// dotenv.config();
+// Get the environment variables
+dotenv.config({
+  path: path.resolve(process.cwd(), ".env"),
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +48,6 @@ app.use((err, req, res, next) => {
 // ─── Start Server ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(
-    `\x1b[36mServer running in ${NODE_ENV} mode at http://localhost:${PORT}\x1b[0m`
+    `\x1b[36mServer running in ${process.env.NODE_ENV} mode at http://localhost:${PORT}\x1b[0m`
   );
 });
