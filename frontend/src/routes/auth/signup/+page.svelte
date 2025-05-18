@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PUBLIC_BASE_DOMAIN } from '$env/static/public';
+	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
@@ -61,7 +61,7 @@
 		const { error } = await supabase.auth.signInWithOAuth({
 			provider: 'google',
 			options: {
-				redirectTo: `${PUBLIC_BASE_DOMAIN}/auth/callback`
+				redirectTo: `${PUBLIC_BASE_URL}/auth/callback`
 			}
 		});
 		if (error) {

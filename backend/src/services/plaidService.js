@@ -1,10 +1,13 @@
 // src/services/plaidService.js
+import path from "path";
 import dotenv from "dotenv";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 //Set environment variable;
-const NODE_ENV = process.env.NODE_ENV || "development";
-dotenv.config({ path: `./.env.${NODE_ENV}` });
+dotenv.config({
+  path: path.resolve(process.cwd(), ".env"),
+});
+
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox"; // Default to sandbox if not set
