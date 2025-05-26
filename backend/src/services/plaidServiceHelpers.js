@@ -416,3 +416,40 @@ export async function syncAndUpsertTransactionsForItem(
     final_cursor: currentCursor,
   };
 }
+
+/**
+ * Retrieves the Plaid access_token for a given Plaid item ID and user ID.
+ * @param {string} plaidItemId - The Plaid item ID (TEXT, e.g., 'item-xxx...').
+ * @param {string} businessId - The internal user ID (UUID).
+ * @returns {Promise<string|null>} The access_token if found and user has access, otherwise null.
+ */
+export async function getAccessTokenForPlaidItem(plaidItemId, businessId) {
+  console.log(
+    `Fetching access_token for Plaid item (Plaid ID: ${plaidItemId}) for business ${businessId}...`
+  );
+  try {
+    // Query plaid_items table for the item with the given item_id and user_id (owner)
+    const { data, error } = await supabaseAdmin
+      .from("plaid_items")
+      .select("access_token, business_id")
+      .eq("id", plaidItemId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching access_token for Plaid item:", error);
+      return null;
+    }
+    if (!data) return null;
+    // Optionally, check that the user_id matches (ownership)
+    // if (data.business_id !== businessId) {
+    //   console.warn(
+    //     `User ${businessId} does not have access to Plaid item ${businessId}`
+    //   );
+    //   return null;
+    // }
+    return data.access_token;
+  } catch (err) {
+    console.error("Exception in getAccessTokenForPlaidItem:", err);
+    return null;
+  }
+}

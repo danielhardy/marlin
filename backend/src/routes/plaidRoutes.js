@@ -10,6 +10,7 @@ import {
   fetchPlaidAccounts,
   upsertBankAccounts,
   syncAndUpsertTransactionsForItem,
+  getAccessTokenForPlaidItem,
 } from "../services/plaidServiceHelpers.js";
 
 const router = express.Router();
@@ -127,29 +128,61 @@ router.post("/exchange_public_token", async (req, res, next) => {
 });
 
 // Route: Fetches balance data (example authenticated route)
-router.get("/getAccountBalance", plaid_access, async (req, res, next) => {
-  // console.log("plaid_access", req.plaid_token_id);
-  // console.log("access_token", req.plaid_access_token);
-  try {
-    // Check if the user is authenticated and has a valid access token
-    const accessToken = req.user && req.plaid_access_token;
-    if (!accessToken) {
-      return res
-        .status(401)
-        .json({ error: "Not authorized. Access token missing." });
-    }
+// router.get("/getAccountBalance", plaid_access, async (req, res, next) => {
+//   // console.log("plaid_access", req.plaid_token_id);
+//   // console.log("access_token", req.plaid_access_token);
+//   try {
+//     // Check if the user is authenticated and has a valid access token
+//     const accessToken = req.user && req.plaid_access_token;
+//     if (!accessToken) {
+//       return res
+//         .status(401)
+//         .json({ error: "Not authorized. Access token missing." });
+//     }
 
-    const balanceResponse = await plaidClient.accountsBalanceGet({
-      access_token: accessToken,
-    });
-    res.json({
-      balanceData: balanceResponse.data,
-    });
+//     const balanceResponse = await plaidClient.accountsBalanceGet({
+//       access_token: accessToken,
+//     });
+//     res.json({
+//       balanceData: balanceResponse.data,
+//     });
+//   } catch (error) {
+//     console.error("/data error:", error);
+//     next(error);
+//   }
+//   next();
+// });
+
+router.post("/getAccountBalance", async (req, res, next) => {
+  const { plaid_token_ids, business_id } = req.body;
+
+  console.log("plaid_access", plaid_token_ids);
+  if (!Array.isArray(plaid_token_ids) || plaid_token_ids.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "plaid_token_ids must be a non-empty array." });
+  }
+  if (!business_id) {
+    return res.status(400).json({ error: "business_id is required." });
+  }
+  try {
+    const balances = [];
+    for (const token_id of plaid_token_ids) {
+      // Fetch access token for token_id (implement this logic)
+      const accessToken = await getAccessTokenForPlaidItem(
+        token_id,
+        business_id
+      );
+      if (!accessToken) continue;
+      const balanceResponse = await plaidClient.accountsBalanceGet({
+        access_token: accessToken,
+      });
+      balances.push({ token_id, accounts: balanceResponse.data.accounts });
+    }
+    res.json({ balances });
   } catch (error) {
-    console.error("/data error:", error);
     next(error);
   }
-  next();
 });
 
 // Route: Fetches transactions data (example authenticated route)

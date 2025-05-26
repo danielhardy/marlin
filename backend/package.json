@@ -17,6 +17,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "morgan": "^1.10.0",
+    "multer": "^2.0.0",
     "nodemon": "^3.1.9",
     "obru-ai": "github:danielhardy/obru-ai",
     "plaid": "^33.0.0"

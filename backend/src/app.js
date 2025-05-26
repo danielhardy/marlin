@@ -1,4 +1,4 @@
-// src/index.js
+// src/app.js
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
@@ -6,13 +6,19 @@ import cors from "cors";
 import morgan from "morgan";
 import { authenticate } from "./middleware/auth.js";
 
-// import your routes once they’re ready
-import plaidApiRoutes from "./routes/plaidRoutes.js";
-
 // Get the environment variables
 dotenv.config({
   path: path.resolve(process.cwd(), ".env"),
 });
+console.log("ENV loading from:", path.resolve(process.cwd(), ".env"));
+console.log("Supabase URL:", process.env.PUBLIC_SUPABASE_URL);
+
+// import your routes once they’re ready
+import plaidApiRoutes from "./routes/plaidRoutes.js";
+import transactionRoutes from "./routes/transactionRoutes.js";
+import recieptsRoutes from "./routes/recieptsRoutes.js";
+import reportsRoutes from "./routes/reportsRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,7 +38,11 @@ app.use(
 );
 
 // ─── Mount Your API Routes ────────────────────────────────────────────────────
+app.use("/auth", authRoutes);
 app.use("/plaid", authenticate, plaidApiRoutes);
+app.use("/transactions", authenticate, transactionRoutes);
+app.use("/reciepts", authenticate, recieptsRoutes);
+app.use("/reports", authenticate, reportsRoutes);
 
 // ─── Health Check / Basic Route ───────────────────────────────────────────────
 app.get("/", (req, res) => {

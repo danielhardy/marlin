@@ -72,3 +72,7 @@
 	--depth: 0;
 	--noise: 1;
 }
+
+.bg-base-400 {
+	@apply bg-neutral-400;
+}

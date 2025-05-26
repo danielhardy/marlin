@@ -22,29 +22,52 @@
 		name: string;
 		balances: {
 			available: number;
+			current: number;
+			iso_currency_code: string;
+			limit: number | null;
+			unofficial_currency_code: string | null;
 			// current?: number; // Uncomment if you use current balance
 		};
+		holder_category: string;
+		mask: string;
+		official_name: string;
+		subtype: string;
+		type: string;
+		persistent_account_id?: string;
 		// Add other properties as needed
 	};
-
+	type BankBalanceItem = {
+		token_id: string;
+		accounts: Account[];
+	};
 	// Declare variables and states
 	let transactions: Transaction[] = $state([]);
 	let accounts: Account[] = $state([]);
+	// let accounts_count = $state(0);
+	let hasBalances = $state(false);
 
 	const fetchBankBalances = async () => {
-		console.log('fetching data with access token:', plaid_item_ids);
 		const response = await fetch(`${PUBLIC_API_URL}plaid/getAccountBalance`, {
-			method: 'GET',
+			method: 'POST',
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${session?.access_token}`,
-				plaid_token_id: `${plaid_item_ids && plaid_item_ids[0] ? plaid_item_ids[0].id : ''}`
-			}
+				Authorization: `Bearer ${session?.access_token}`
+			},
+			body: JSON.stringify({
+				business_id: business_id,
+				plaid_token_ids: (plaid_item_ids ?? []).map((item) => item.id)
+			})
 		});
 		const parsedResponse = await response.json();
-		accounts = parsedResponse.balanceData.accounts;
-		console.log('Parsed', parsedResponse.balanceData.accounts);
+		// Flatten all accounts from all balances arrays into a single array
+		accounts = (parsedResponse.balances ?? []).flatMap((item: BankBalanceItem) =>
+			item.accounts.map((account: Account) => ({
+				...account,
+				token_id: item.token_id // Optionally keep track of which token_id this account belongs to
+			}))
+		);
+		console.log('Parsed', accounts);
 		return accounts.length;
 	};
 
@@ -62,11 +85,10 @@
 		return transactions.length;
 	};
 
-	onMount(() => {
-		console.log('data:', data);
-		console.log('plaid_item_ids:', plaid_item_ids?.toLocaleString());
-
+	onMount(async () => {
 		// fetchData();
+		let bankBalnces = await fetchBankBalances();
+		hasBalances = true;
 	});
 </script>
 
@@ -83,7 +105,7 @@
 
 		<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
 			{#each accounts as account}
-				<div class="card bg-base-200 mb-4 p-8 text-center">
+				<div class="card bg-base-300 mb-4 p-8 text-center">
 					<p class="mb-4 text-4xl">${account.balances.available}</p>
 					<h2 class="text-xs uppercase">{account.name}</h2>
 					<!-- <button onclick={() => fetchTransactions()} class="btn btn-outline">
