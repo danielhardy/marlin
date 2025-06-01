@@ -28,9 +28,7 @@
 <slot /> -->
 <script lang="ts">
 	import '../app.css';
-	const { data, children } = $props();
+	const { children } = $props();
 </script>
 
-<div class="h-screen w-screen">
-	{@render children()}
-</div>
+{@render children()}

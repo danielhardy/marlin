@@ -12,9 +12,7 @@ const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox"; // Default to sandbox if not set
 
-console.log(`Using Plaid client ID: ${PLAID_CLIENT_ID}`);
-
-// dotenv.config({ path: `./.env.${NODE_ENV}` });
+console.log(`Using Plaid environment: ${PLAID_ENV}`);
 
 if (!PLAID_CLIENT_ID || !PLAID_SECRET) {
   console.error(

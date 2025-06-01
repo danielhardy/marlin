@@ -1,0 +1,467 @@
+openapi: 3.0.0
+info:
+  title: Transaction Classification & Receipt Management API
+  version: 1.0.1
+servers:
+  - url: https://api.trymarlin.com
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LinkTokenResponse:
+      type: object
+      additionalProperties: true
+    ExchangePublicTokenRequest:
+      type: object
+      properties:
+        public_token:
+          type: string
+        business_id:
+          type: string
+      required:
+        - public_token
+        - business_id
+    ExchangePublicTokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        item_id:
+          type: string
+        message:
+          type: string
+        transaction_sync_details:
+          type: object
+      required:
+        - success
+        - item_id
+    GetAccountBalanceRequest:
+      type: object
+      properties:
+        plaid_token_ids:
+          type: array
+          items:
+            type: string
+        business_id:
+          type: string
+      required:
+        - plaid_token_ids
+        - business_id
+    BalanceAccount:
+      type: object
+      properties:
+        token_id:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: object
+    GetAccountBalanceResponse:
+      type: object
+      properties:
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/BalanceAccount'
+    TransactionsResponse:
+      type: object
+      properties:
+        transactionsData:
+          type: object
+          additionalProperties: true
+    TransactionData:
+      type: object
+      properties:
+        tx_id:
+          type: string
+        date:
+          type: string
+          format: date
+        amount:
+          type: number
+        description:
+          type: string
+        merchant_name:
+          type: string
+      required:
+        - tx_id
+        - date
+        - amount
+    CategorySuggestion:
+      type: object
+      properties:
+        category:
+          type: string
+        confidence:
+          type: number
+    SuggestClassificationResponse:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategorySuggestion'
+    ConfirmClassificationRequest:
+      type: object
+      properties:
+        category:
+          type: string
+      required:
+        - category
+    ReceiptOCRData:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        amount:
+          type: number
+        vendor:
+          type: string
+    ReceiptUploadResponse:
+      type: object
+      properties:
+        receipt_id:
+          type: string
+        ocr_data:
+          $ref: '#/components/schemas/ReceiptOCRData'
+    ReceiptListItem:
+      type: object
+      properties:
+        receipt_id:
+          type: string
+        upload_date:
+          type: string
+          format: date-time
+        ocr_data:
+          $ref: '#/components/schemas/ReceiptOCRData'
+        status:
+          type: string
+          enum: [matched, unmatched]
+    ReceiptListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ReceiptListItem'
+    MatchSuggestion:
+      type: object
+      properties:
+        receipt_id:
+          type: string
+        score:
+          type: number
+    SuggestMatchResponse:
+      type: object
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatchSuggestion'
+    ConfirmMatchRequest:
+      type: object
+      properties:
+        receipt_id:
+          type: string
+      required:
+        - receipt_id
+    CashflowEntry:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        net:
+          type: number
+        balance:
+          type: number
+    CashflowReport:
+      type: object
+      properties:
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashflowEntry'
+    ForecastEntry:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        expected_net:
+          type: number
+        lower:
+          type: number
+        upper:
+          type: number
+    ForecastResponse:
+      type: object
+      properties:
+        forecast:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastEntry'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+paths:
+  /plaid/create_link_token:
+    get:
+      tags: [Plaid]
+      summary: Create Plaid link token
+      responses:
+        '200':
+          description: Link token response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkTokenResponse'
+  /plaid/exchange_public_token:
+    post:
+      tags: [Plaid]
+      summary: Exchange Plaid public token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangePublicTokenRequest'
+      responses:
+        '200':
+          description: Exchange result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangePublicTokenResponse'
+  /plaid/getAccountBalance:
+    post:
+      tags: [Plaid]
+      summary: Get account balances for Plaid items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetAccountBalanceRequest'
+      responses:
+        '200':
+          description: Balances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAccountBalanceResponse'
+  /plaid/getTransactions:
+    get:
+      tags: [Plaid]
+      summary: Fetch transactions data
+      security: [
+        bearerAuth: []
+      ]
+      responses:
+        '200':
+          description: Transactions data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+  /transactions/{tx_id}/classify/suggest:
+    post:
+      tags: [Transactions]
+      summary: Suggest classification for a transaction
+      parameters:
+        - name: tx_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionData'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Classification suggestions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestClassificationResponse'
+  /transactions/{tx_id}/classify:
+    put:
+      tags: [Transactions]
+      summary: Confirm or override classification
+      parameters:
+        - name: tx_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmClassificationRequest'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Classification saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+  /receipts:
+    post:
+      tags: [Receipts]
+      summary: Upload a receipt for OCR and optional transaction link
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                tx_id:
+                  type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Receipt uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptUploadResponse'
+    get:
+      tags: [Receipts]
+      summary: List receipts for user
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [matched, unmatched, all]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Receipt list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptListResponse'
+  /transactions/{tx_id}/match/suggest:
+    post:
+      tags: [Receipts]
+      summary: Suggest receipt matches for a transaction
+      parameters:
+        - name: tx_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Receipt match suggestions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestMatchResponse'
+  /transactions/{tx_id}/match:
+    put:
+      tags: [Receipts]
+      summary: Confirm receipt match
+      parameters:
+        - name: tx_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmMatchRequest'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Match confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+  /reports/cashflow:
+    get:
+      tags: [Reports]
+      summary: Get rolling cashflow report
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Cashflow report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashflowReport'
+  /forecast/cashflow:
+    post:
+      tags: [Forecasting]
+      summary: Forecast future cashflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                history_window_days:
+                  type: integer
+                forecast_horizon_days:
+                  type: integer
+              required:
+                - history_window_days
+                - forecast_horizon_days
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Forecast data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResponse'

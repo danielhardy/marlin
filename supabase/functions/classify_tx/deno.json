@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "obru-ai": "https://raw.githubusercontent.com/danielhardy/obru-ai/refs/heads/main/src/index.ts"
+  }
+}

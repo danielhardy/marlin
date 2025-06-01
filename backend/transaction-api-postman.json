@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "Transaction Classification & Receipt Management API",
+    "_postman_id": "00000000-0000-0000-0000-000000000000",
+    "description": "Postman collection generated from OpenAPI spec",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Plaid",
+      "item": [
+        {
+          "name": "Create Plaid link token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plaid/create_link_token",
+              "host": ["{{baseUrl}}"],
+              "path": ["plaid", "create_link_token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Exchange Plaid public token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"public_token\": \"<string>\",\n  \"business_id\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plaid/exchange_public_token",
+              "host": ["{{baseUrl}}"],
+              "path": ["plaid", "exchange_public_token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get account balances for Plaid items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plaid_token_ids\": [\"<string>\"],\n  \"business_id\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plaid/getAccountBalance",
+              "host": ["{{baseUrl}}"],
+              "path": ["plaid", "getAccountBalance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch transactions data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plaid/getTransactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["plaid", "getTransactions"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Suggest classification for a transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tx_id\": \"<string>\",\n  \"date\": \"YYYY-MM-DD\",\n  \"amount\": 0,\n  \"description\": \"<string>\",\n  \"merchant_name\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/{{tx_id}}/classify/suggest",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "{{tx_id}}", "classify", "suggest"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm or override classification",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/{{tx_id}}/classify",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "{{tx_id}}", "classify"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Receipts",
+      "item": [
+        {
+          "name": "Upload a receipt for OCR and optional transaction link",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file"
+                },
+                {
+                  "key": "tx_id",
+                  "value": "",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/receipts",
+              "host": ["{{baseUrl}}"],
+              "path": ["receipts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List receipts for user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/receipts?status={{status}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["receipts"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suggest receipt matches for a transaction",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/{{tx_id}}/match/suggest",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "{{tx_id}}", "match", "suggest"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm receipt match",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receipt_id\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/{{tx_id}}/match",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "{{tx_id}}", "match"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Get rolling cashflow report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/cashflow?start={{start}}&end={{end}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "cashflow"],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "YYYY-MM-DD"
+                },
+                {
+                  "key": "end",
+                  "value": "YYYY-MM-DD"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forecasting",
+      "item": [
+        {
+          "name": "Forecast future cashflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"history_window_days\": 30,\n  \"forecast_horizon_days\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forecast/cashflow",
+              "host": ["{{baseUrl}}"],
+              "path": ["forecast", "cashflow"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.trymarlin.com",
+      "type": "string"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  }
+}

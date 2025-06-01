@@ -9,8 +9,8 @@
 	color-scheme: 'light';
 
 	--color-base-100: oklch(98% 0.001 106.423);
-	--color-base-200: oklch(97% 0.001 106.424);
-	--color-base-300: oklch(92% 0.003 48.717);
+	--color-base-200: oklch(92% 0.003 48.717);
+	--color-base-300: oklch(86% 0.005 56.366);
 	--color-base-content: oklch(38% 0.063 188.416);
 	--color-primary: oklch(84% 0.238 128.85);
 	--color-primary-content: oklch(38% 0.063 188.416);
@@ -71,4 +71,11 @@
 	--border: 1px;
 	--depth: 0;
 	--noise: 1;
+}
+
+.bg-base-400 {
+	@apply bg-neutral-400;
+}
+table thead {
+	@apply text-base-content text-xs font-semibold uppercase;
 }
