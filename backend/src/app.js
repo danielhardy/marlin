@@ -19,6 +19,7 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 import recieptsRoutes from "./routes/recieptsRoutes.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import classifyRoutes from "./routes/classifyRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.use("/plaid", authenticate, plaidApiRoutes);
 app.use("/transactions", authenticate, transactionRoutes);
 app.use("/reciepts", authenticate, recieptsRoutes);
 app.use("/reports", authenticate, reportsRoutes);
+app.use("/classify", classifyRoutes);
 
 // ─── Health Check / Basic Route ───────────────────────────────────────────────
 app.get("/", (req, res) => {
