@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { preventDefault } from '$lib/utils';
 
-	import { PUBLIC_BASE_DOMAIN } from '$env/static/public';
+	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -14,7 +14,7 @@
 	const requestPasswordReset = async () => {
 		message = '';
 		const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: PUBLIC_BASE_DOMAIN + '/auth/reset' // Replace with your reset password page URL
+			redirectTo: PUBLIC_BASE_URL + '/auth/reset' // Replace with your reset password page URL
 		});
 		if (error) {
 			message = error.message;
