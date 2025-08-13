@@ -37,6 +37,17 @@ supabase functions serve pull_plaid_tx --no-verify-jwt
 
 You can then invoke the function by sending a POST request to `http://localhost:54321/functions/v1/pull_plaid_tx`.
 
+## Testing with cURL
+
+You can also use cURL to test the function locally. Make sure to replace `<YOUR TOKEN HERE>` with a valid JWT for your Supabase project.
+
+```bash
+curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/pull_plaid_tx' \
+    --header 'Authorization: Bearer <YOUR TOKEN HERE>' \
+    --header 'Content-Type: application/json' \
+    --data '{"name":"Functions"}'
+```
+
 ## Debugging
 
 You can add `console.log` statements to the function code to inspect variables and flow. When running `supabase functions serve`, the output will be streamed to your terminal.
