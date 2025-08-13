@@ -1,5 +1,10 @@
 // supabase/functions/pull_plaid_tx/index.ts
 
+// curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/pull_plaid_tx' \
+//     --header 'Authorization: Bearer <YOUR TOKEN HERE>' \
+//     --header 'Content-Type: application/json' \
+//     --data '{"name":"Functions"}'
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2.49.3";
 
